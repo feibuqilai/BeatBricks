@@ -1,0 +1,7 @@
+body{padding-top: 50px;}
+#div1{width:910px;height:900px;margin-left: auto;margin-right: auto;}
+#screen{background-color: #111;}
+.row{padding-top: 30px;}
+.row button{width: 100px;height: 50px;font-size: 18px;}
+.row .span1{font-size: 15px;color: blue; }
+.row .span1 span{color: red;}
