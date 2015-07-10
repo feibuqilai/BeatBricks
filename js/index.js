@@ -25,18 +25,20 @@ function Bricks(w, h, r, c, p) {
 
 var canvas,context,oBall,oPadd,oBricks;
 var aSounds = [];
-var iPoint,iTime,iMin,iSec,ilasttime,ilastpoints=0;
+var iPoint=iTime=iMin=iSec=ilasttime=ilastpoints=0;
 var LeftBtn = false;
 var RightBtn = false;
 var iStart,iGameTimer = null;
+var lasttime,lastpoints,time,points;
 $(function(){
 	canvas = document.getElementById('screen');
 	context = canvas.getContext('2d');
 
-    var lasttime = document.getElementById('lasttime');
-    var lastpoints = document.getElementById('lastpoints');
-    var time = document.getElementById('time');
-    var points = document.getElementById('points');
+    lasttime = document.getElementById('lasttime');
+    lastpoints = document.getElementById('lastpoints');
+    time = document.getElementById('time');
+    points = document.getElementById('points');
+    
     
 	//画接盘
 	var paddImg = new Image();
@@ -44,7 +46,7 @@ $(function(){
 	paddImg.onload = function(){};
 
 	oBall = new Ball(canvas.width / 2, 500, 0.5, -5, 10); // new ball object
-    oPadd = new Padd(canvas.width / 2, 120, 20, paddImg); // new padd object
+    oPadd = new Padd(canvas.width / 2 - 60, 120, 20, paddImg); // new padd object
     oBricks = new Bricks(70, 25, 10, 13, 2); // new bricks object
 	//画砖块设置标志位
 	oBricks.objs = new Array(oBricks.r);
@@ -96,8 +98,8 @@ $(function(){
     ilastpoints = localStorage.getItem('lastpoints');
 
     
-    iStart = setInterval(draw,10);
     iGameTimer = setInterval(countTimer,1000);
+    iStart = setInterval(draw,10);
 
 
     var iCanvX1 = $(canvas).offset().left;
@@ -214,6 +216,8 @@ function draw(){
     iSec = iTime%60;
     if (iMin < 10) iMin = "0" + iMin;
     if (iSec < 10) iSec = "0" + iSec;
+    // console.log(iTime);
+    // console.log(iMin + ':' + iSec);
     time.innerHTML = iMin + ':' + iSec;
     points.innerHTML = iPoint;
     lasttime.innerHTML = ilasttime;
