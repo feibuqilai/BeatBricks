@@ -23,17 +23,27 @@ function Bricks(w, h, r, c, p) {
 
 
 
-
+var canvas,context,oBall,oPadd,oBricks;
+var aSounds = [];
+var iPoint,iTime,iMin,iSec,ilasttime,ilastpoints=0;
+var LeftBtn = false;
+var RightBtn = false;
+var iStart,iGameTimer = null;
 $(function(){
-	var canvas = document.getElementById('screen');
-	var context = canvas.getContext('2d');
+	canvas = document.getElementById('screen');
+	context = canvas.getContext('2d');
 
+    var lasttime = document.getElementById('lasttime');
+    var lastpoints = document.getElementById('lastpoints');
+    var time = document.getElementById('time');
+    var points = document.getElementById('points');
+    
 	//画接盘
 	var paddImg = new Image();
-	paddImg.src = "./images/padd.png";
+	paddImg.src = "images/padd.png";
 	paddImg.onload = function(){};
 
-	oBall = new Ball(canvas.width / 2, 870, 0.5, -5, 10); // new ball object
+	oBall = new Ball(canvas.width / 2, 500, 0.5, -5, 10); // new ball object
     oPadd = new Padd(canvas.width / 2, 120, 20, paddImg); // new padd object
     oBricks = new Bricks(70, 25, 10, 13, 2); // new bricks object
 	//画砖块设置标志位
@@ -44,24 +54,20 @@ $(function(){
 				oBricks.objs[i][j] = 1;
 			};
 		
-	}}
+	}
 
-	//画小球
-
-
-
-
-
-	aSounds[0] = new Audio('media/snd1.wav');
+    
+	aSounds[0] = new Audio("media/snd1.wav");
     aSounds[0].volume = 0.9;
-    aSounds[1] = new Audio('media/snd2.wav');
+    aSounds[1] = new Audio("media/snd2.wav");
     aSounds[1].volume = 0.9;
-    aSounds[2] = new Audio('media/snd3.wav');
+    aSounds[2] = new Audio("media/snd3.wav");
     aSounds[2].volume = 0.9;
 
 
-    var LeftBtn = false;
-    var RightBtn = false;
+    
+    //键盘左右键
+    
 
     $(window).keydown(function(event){
     	switch(event.keyCode){
@@ -77,14 +83,34 @@ $(function(){
     $(window).keyup(function(event){
     	switch (event.keyCode) {
             case 37: // 'Left' key
-                bLeftBut = false;
+                LeftBtn = false;
                 break;
             case 39: // 'Right' key
-                bRightBut = false;
+                RightBtn = false;
                 break;
         }
     });
 	
+
+    ilasttime = localStorage.getItem('lasttime');
+    ilastpoints = localStorage.getItem('lastpoints');
+
+    
+    iStart = setInterval(draw,10);
+    iGameTimer = setInterval(countTimer,1000);
+
+
+    var iCanvX1 = $(canvas).offset().left;
+    var iCanvX2 = iCanvX1 + canvas.width;
+    $('#screen').mousemove(function(e) { // binding mousemove event
+        if (e.pageX > iCanvX1 && e.pageX < iCanvX2) {
+
+            oPadd.x = Math.max(e.pageX - iCanvX1 - (oPadd.w/2), 0);
+            oPadd.x = Math.min(canvas.width - oPadd.w, oPadd.x);
+        }
+        })
+   
+    
 })
 
 
@@ -107,13 +133,20 @@ function draw(){
 	clear();
 
 	//画小球
+    context.fillStyle = "#f66";
 	context.beginPath();
 	context.arc(oBall.x,oBall.y,oBall.r,0,Math.PI*2,true);
 	context.closePath();
-	context.fillStyle = "#f66";
+	
 	context.fill();
 
 	//画接盘
+    if (RightBtn) {
+        oPadd.x += 5;
+    }
+    else if (LeftBtn) {
+        oPadd.x -= 5;
+    };
 	context.drawImage(oPadd.img,oPadd.x,canvas.height-oPadd.h);
 
 
@@ -121,7 +154,7 @@ function draw(){
 	for (var i = 0; i <oBricks.r; i++) {
 		context.fillStyle = oBricks.colors[i];
 		for (var j = 0; j < oBricks.c; j++) {
-			if (oBricks[i][j]==1) {
+			if (oBricks.objs[i][j]==1) {
 				context.beginPath();
 				context.fillRect((j * (oBricks.w + oBricks.p)) + oBricks.p, (i * (oBricks.h + oBricks.p)) + oBricks.p, oBricks.w, oBricks.h);
 				context.closePath();
@@ -129,12 +162,6 @@ function draw(){
 		
 	}}
 
-
-	if (LeftBtn) {
-		oPadd.x-=5;
-	}else if (RightBtn) {
-		oPadd.x+=5;
-	};
 
 
 	//当前小球所在行与列
@@ -145,8 +172,8 @@ function draw(){
 
     //碰撞运动
     //球碰到砖块
-    if (oBall.y < oBricks.r * iRowH && iRow >= 0 && iCol >=0 && oBricks.objs[iRow][iCol] == 1) {
-    	oBricks.objs[iRow][iCol] = 0;
+    if (oBall.y < oBricks.r * iRowH && iBallR >= 0 && iBallC >=0 && oBricks.objs[iBallR][iBallC] == 1) {
+    	oBricks.objs[iBallR][iBallC] = 0;
     	oBall.dy = -oBall.dy;
     	iPoint++;
 
@@ -154,18 +181,45 @@ function draw(){
     };
 
     //球水平方向碰到墙壁
-    if (oBall.x + oBall.dx + oBall.r > canvas.width || oBall.x + oBall.dx -oBall.r) {
+    if (oBall.x + oBall.dx + oBall.r > canvas.width || oBall.x + oBall.dx -oBall.r <0) {
     	oBall.dx = -oBall.dx;
     };
 
     //球垂直方向碰到墙壁
     if (oBall.y + oBall.dy - oBall.r < 0) {//上方
     	oBall.dy = -oBall.dy;
-    }else if (oBall.y + oBall.dy + oBall.r >canvas.height - oPadd.h) {
+    }else if (oBall.y + oBall.dy + oBall.r > canvas.height - oPadd.h) {
     	if (oBall.x > oPadd.x && oBall.x < oPadd.x + oPadd.w) {
-    		oBall.dy = -oBall.dy;
+    		oBall.dx = 10*((oBall.x-(oPadd.x+oPadd.w/2))/oPadd.w);
+            oBall.dy = -oBall.dy;
 
     		aSounds[2].play();
-    	};
-    };;
+    	}
+        else if (oBall.y + oBall.dy +oBall.r >canvas.height) {//游戏结束
+            clearInterval(iStart);
+            clearInterval(iGameTimer);
+
+            localStorage.setItem('lasttime',iMin + ':' + iSec);
+            localStorage.setItem('lastpoints',iPoint);
+
+            aSounds[1].play();
+
+        };
+    };
+    oBall.x += oBall.dx;
+    oBall.y += oBall.dy;
+
+
+    iMin = Math.floor(iTime/60);
+    iSec = iTime%60;
+    if (iMin < 10) iMin = "0" + iMin;
+    if (iSec < 10) iSec = "0" + iSec;
+    time.innerHTML = iMin + ':' + iSec;
+    points.innerHTML = iPoint;
+    lasttime.innerHTML = ilasttime;
+    lastpoints.innerHTML = ilastpoints;
+}
+
+function countTimer(){
+    iTime++;
 }
