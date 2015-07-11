@@ -39,36 +39,8 @@ $(function(){
     time = document.getElementById('time');
     points = document.getElementById('points');
     
-    
-	//画接盘
-	var paddImg = new Image();
-	paddImg.src = "images/padd.png";
-	paddImg.onload = function(){};
-
-	oBall = new Ball(canvas.width / 2, 500, 0.5, -5, 10); // new ball object
-    oPadd = new Padd(canvas.width / 2 - 60, 120, 20, paddImg); // new padd object
-    oBricks = new Bricks(70, 25, 10, 13, 2); // new bricks object
-	//画砖块设置标志位
-	oBricks.objs = new Array(oBricks.r);
-	for (var i = 0; i <oBricks.r; i++) {
-		oBricks.objs[i] = new Array(oBricks.c);
-		for (var j = 0; j < oBricks.c; j++) {
-				oBricks.objs[i][j] = 1;
-			};
-		
-	}
-
-    
-	aSounds[0] = new Audio("media/snd1.wav");
-    aSounds[0].volume = 0.9;
-    aSounds[1] = new Audio("media/snd2.wav");
-    aSounds[1].volume = 0.9;
-    aSounds[2] = new Audio("media/snd3.wav");
-    aSounds[2].volume = 0.9;
-
-
-    
-    //键盘左右键
+    initial();
+	
     
 
     $(window).keydown(function(event){
@@ -113,6 +85,42 @@ $(function(){
         })
    
     
+    var restart = document.getElementById('restart');
+    var stop = document.getElementById('stop');
+    //console.log(stop.innerHTML);
+    //stop.innerHTML="kaishi";
+    stop.onclick = function(){
+        
+        if (stop.innerHTML=="暂停") {
+            stop.innerHTML="开始";
+
+            clearInterval(iGameTimer);
+            clearInterval(iStart);
+        }else{
+            stop.innerHTML="暂停";
+            iGameTimer = setInterval(countTimer,1000);
+            iStart = setInterval(draw,10);
+        };
+    };
+
+    restart.onclick = function(){
+        initial();
+        iTime = 0;
+        iPoint = 0;
+        
+        stop.innerHTML="暂停";
+        clearInterval(iGameTimer);
+        clearInterval(iStart);
+        iGameTimer = setInterval(countTimer,1000);
+        iStart = setInterval(draw,10);
+        time.innerHTML = "00 + ':' + 00";
+        points.innerHTML = "0";
+        lasttime.innerHTML = ilasttime;
+        lastpoints.innerHTML = ilastpoints;
+    }
+
+
+    
 })
 
 
@@ -129,6 +137,34 @@ function clear(){
 
 	context.fillStyle="#111";
 	context.fillRect(0,0,canvas.width,canvas.height);
+}
+
+
+function initial(){
+    var paddImg = new Image();
+    paddImg.src = "images/padd.png";
+    paddImg.onload = function(){};
+
+    oBall = new Ball(canvas.width / 2, 500, 0.5, -3, 10); // new ball object
+    oPadd = new Padd(canvas.width / 2 - 60, 120, 20, paddImg); // new padd object
+    oBricks = new Bricks(70, 25, 10, 13, 2); // new bricks object
+    //画砖块设置标志位
+    oBricks.objs = new Array(oBricks.r);
+    for (var i = 0; i <oBricks.r; i++) {
+        oBricks.objs[i] = new Array(oBricks.c);
+        for (var j = 0; j < oBricks.c; j++) {
+                oBricks.objs[i][j] = 1;
+            };
+        
+    }
+
+    
+    aSounds[0] = new Audio("media/snd1.wav");
+    aSounds[0].volume = 0.9;
+    aSounds[1] = new Audio("media/snd2.wav");
+    aSounds[1].volume = 0.9;
+    aSounds[2] = new Audio("media/snd3.wav");
+    aSounds[2].volume = 0.9;
 }
 //
 function draw(){
